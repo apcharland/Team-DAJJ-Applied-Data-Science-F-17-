@@ -1,0 +1,71 @@
+
+
+
+```{r, echo = FALSE, message=FALSE, warning=FALSE}
+## Code Chunk 1: Load necessary packages, dataset, global functions and variables
+
+
+
+##  Original Function: 'take.subset'
+##  Returns dataframe that is subset of input dataframe based on 2 input features to subset (by col #) and values to subset on.
+##  INPUTS (3):
+##      1) 'df' - dataframe that contains at least as many columns as 
+##        highest digit provided in input #2
+##      2) 'col_nums' - vector of length 2, with col# references to 
+##       subset in returned dataframe
+##      3) 'ls_values' - list of length 2, containing two vectors:
+##        [1]: first col_num feature set of values to subset
+##        [2]: second col_num feature set of values to subset
+##    OUTPUTS (1):
+##      1) 'data.out' -  dataframe containing col_num features with 
+##        only specified values
+
+take.subset = function(df, col_nums, ls_values) {
+  if(class(df) != "data.frame"){
+    # do not continue - incorrect 1st input
+    break
+  }
+  else{
+    if(class(col_nums) != "numeric"){
+      # do not continue - incorrect 2nd input
+      break
+    }
+    else{
+      max_col <- length(df)
+      max_request <- max(col_nums)
+      if(max_col < max_request){
+        # do not continue - incorrect column #s (too high)
+        break
+      }
+      else{
+        if(any(col_nums < 1)){
+          # do not continue - incorrect column #s (too low)
+          break
+        }
+        else{
+          if(class(ls_values) != "list"){
+            # do not continue - incorrect 3rd input
+            break
+          }
+        }
+      }
+    }
+  }
+  # end control ifs - continue onward
+  
+  # extract col values:
+  values_A <- ls_values[[1]]
+  values_B <- ls_values[[2]]
+  
+  data.out <- subset(df, df[[col_nums[1]]] == values_A)
+  data.out <- subset(data.out, data.out[[col_nums[2]]] == values_B)
+  
+  
+  return(data.out)
+
+}  # END take.subset()
+
+
+## END Code Chunk 1: Load necessary packages, dataset, global functions and variables
+```
+
