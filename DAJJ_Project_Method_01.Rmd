@@ -1,0 +1,55 @@
+
+
+
+```{r, echo = FALSE, message=FALSE, warning=FALSE}
+## Code Chunk 1: Load necessary packages, dataset, global functions and variables
+
+
+
+##  Original Function: 'take.subset'
+##  Returns dataframe that is subset of input dataframe based on input column (feature) numbers.
+##  INPUTS (2):
+##      1) 'df' - dataframe that contains at least as many columns as 
+##        highest digit provided in input #2
+##      2) 'col_nums' - vector of col# references to retain in ##    ##        returned dataframe
+##    OUTPUTS (1):
+##      1) -  dataframe containing col_num features only 
+
+take.subset = function(df, col_nums) {
+  if(class(df) != "data.frame"){
+    # do not continue - incorrect 1st input
+    break
+  }
+  else{
+    if(class(col_nums) != "numeric"){
+      # do not continue - incorrect 2nd input
+      break
+    }
+    else{
+      max_col <- length(df)
+      max_request <- max(col_nums)
+      if(max_col < max_request){
+        # do not continue - incorrect column #s (too high)
+        break
+      }
+      else{
+        if(any(col_nums < 1)){
+          # do not continue - incorrect column #s (too low)
+          break
+        }
+        else{
+          # all controls pass
+        }
+      }
+    }
+  }
+  # end control ifs - continue onward
+  
+  return(df[,col_nums])
+
+}  # END take.subset()
+
+
+## END Code Chunk 1: Load necessary packages, dataset, global functions and variables
+```
+
