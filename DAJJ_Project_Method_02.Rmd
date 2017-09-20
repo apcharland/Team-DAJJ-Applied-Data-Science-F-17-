@@ -1,0 +1,181 @@
+
+
+
+```{r, echo = FALSE, message=FALSE, warning=FALSE}
+## Code Chunk 1: Load necessary packages, dataset, global functions and variables
+
+library(FNN)
+library(plyr)
+
+##  Original Function: 'top.values'
+##  Returns dataframe that is subset of input dataframe based on 2 input features to subset (by col #) and values to subset on.
+##  INPUTS (1):
+##      1) 'df' - dataframe that contains "actor_1_name", "actor_2_name" and "actor_3_name" to scan for top 3 Most Common Values (MCVs)"
+##    OUTPUTS (1):
+##      1) 'data.out' -  vector containing up to 3 Actor names (strings) that represent MCVs
+top.values <- function(df){
+  # run and store output of 
+  all_data <- brief(df)
+  
+  # store 2nd list object (Factor variable data only)
+  factor_data <- all_data[2][[1]]
+  
+  # store row # for each of 3 actor name fields:
+  actor_1_loc <- which(factor_data[2]=="actor_1_name")
+  actor_2_loc <- which(factor_data[2]=="actor_2_name")
+  actor_3_loc <- which(factor_data[2]=="actor_3_name")
+  
+  # store MCV list for each of 3 actor name fields:
+  actor_1_MCV <- factor_data[5][actor_1_loc,1]
+  actor_2_MCV <- factor_data[5][actor_2_loc,1]
+  actor_3_MCV <- factor_data[5][actor_3_loc,1]
+  
+  # pull actor names and ranks for all 3 into one table for sorting:
+  top_actors <- rbind()
+  for(i in 1:length(actor_1_MCV[[1]])){
+    # store locally, determine position of first "(" and split
+    temp <- actor_1_MCV[[1]][i]
+    loc <- str_locate(temp, "\\(")
+    name <- str_sub(temp, 1, loc[[1]]-1)
+    name <- str_trim(name)
+    num <- str_sub(temp, loc[[1]], -1)
+    num <- as.numeric(str_extract(num, "[0-9]+"))
+    # rbind new row to running table
+    top_actors <- rbind(top_actors, cbind(name, num))
+  }
+  for(i in 1:length(actor_2_MCV[[1]])){
+    # store locally, determine position of first "(" and split
+    temp <- actor_2_MCV[[1]][i]
+    loc <- str_locate(temp, "\\(")
+    name <- str_sub(temp, 1, loc[[1]]-1)
+    name <- str_trim(name)
+    num <- str_sub(temp, loc[[1]], -1)
+    num <- as.numeric(str_extract(num, "[0-9]+"))
+    # rbind new row to running table
+    top_actors <- rbind(top_actors, cbind(name, num))
+  }
+  for(i in 1:length(actor_3_MCV[[1]])){
+    # store locally, determine position of first "(" and split
+    temp <- actor_3_MCV[[1]][i]
+    loc <- str_locate(temp, "\\(")
+    name <- str_sub(temp, 1, loc[[1]]-1)
+    name <- str_trim(name)
+    num <- str_sub(temp, loc[[1]], -1)
+    num <- as.numeric(str_extract(num, "[0-9]+"))
+    # rbind new row to running table
+    top_actors <- rbind(top_actors, cbind(name, num))
+  }
+  
+  # clean up type and sorting of table, return top 3
+  top_actors <- as.data.frame(top_actors)
+  top_actors$num <- as.numeric(as.character(top_actors$num))
+  top_actors$name <- as.character(top_actors$name)
+  top_actors <- arrange(top_actors, -num)
+  return(head(top_actors$name,3))
+  
+}# end of "top.values" functions
+
+
+##  Adjusted Function (95-791 HW1) 'brief'
+##  INPUTS (1):
+##    1) 'df' - dataframe to analyze for variable structures
+##  OUTPUTS (1):
+##    1) list object containing two data.frames (for downstream use)
+##      [[1]]: Numeric attribute table
+##      [[2]]: Factor (Symbolic) attribute table
+brief <- function(df_input){
+  
+  num_col <- ncol(df_input)
+  num_row <- nrow(df_input)
+  
+  # numeric_df will be the target housing table for numeric attributes
+  numeric_df <- rbind() 
+  
+  # factor_df will be the target housing table for factor attributes
+  factor_df <- rbind() 
+  
+  for(i in 1:num_col){
+    temp <- df_input[[i]] # Vector of current attribute values
+    temp_name <- names(df_input[i])
+    temp_missing_index <- which(is.na(temp))
+    temp_missing <- length(temp_missing_index)
+    
+    
+    
+    if(is.factor(temp)){
+      # Only for Factors:
+      temp_num_levels <- length(levels(temp)) # Arity
+      # Correctly ordered frequency table for factor (take top 3 rows)
+      temp_level_table <- count(df_input[i])
+      temp_level_table <- arrange(temp_level_table, -temp_level_table[2])
+      temp_level_table_nrows <- nrow(temp_level_table)
+      temp_MCVs <- NULL
+      length_mcv <- NULL
+      
+      if(temp_level_table_nrows >= 3){
+        temp_MCVS <- numeric(3)
+        length_mcv <- 3
+      }
+      else if(temp_level_table_nrows == 2){
+        temp_MCVS <- numeric(2)
+        length_mcv <- 2
+      }
+      else{
+        temp_MCVS <- numeric(1)
+        length_mcv <- 1
+      }
+      
+      # Concatenate first three rows of temp_level_table into temp_MCVS 
+      for(n in 1:length_mcv){
+        temp_MCVS[n] <- paste(temp_level_table[n,1],"(",temp_level_table[n,2], ")" )
+      }
+      
+      # input factor values into factor list:
+      next_factor_row <- list(Attribute_ID = i, Attribute_Name = temp_name, Missing = temp_missing, Arity = temp_num_levels, MCVS_Counts = temp_MCVS)
+      
+      # add the row to existing factor matrix
+      factor_df <- rbind(factor_df, next_factor_row)
+      row.names(factor_df) <- NULL
+      
+    } # end of if(factor)
+    
+    else {
+      # Only for Numeric:
+      temp_mean <- mean(temp, na.rm = TRUE)
+      temp_median <- median(temp, na.rm = TRUE)
+      temp_sd <- sd(temp, na.rm = TRUE)
+      temp_min <- min(temp, na.rm = TRUE)
+      temp_max <- max(temp, na.rm = TRUE)
+    
+      # input non factor values into numeric list:
+      next_numeric_row <- list(Attribute_ID = i, Attribute_Name = temp_name, Missing = temp_missing, Mean = temp_mean, Median = temp_median, Sdev = temp_sd, Min = temp_min, Max = temp_max)
+      
+      #add the row to existing matrix for numerics
+      numeric_df <- rbind(numeric_df, next_numeric_row)
+      row.names(numeric_df) <- NULL
+      
+    } # end of else if(non factor)
+    
+  } # end of current attribute (for loop)
+  
+  
+  # Print outputs as.data.frame(numeric_df)
+  #cat("This dataset has ", num_row, " Rows ", num_col, " Attributes", "\n")
+  #print("Real Valued Attributes")
+  #print(as.data.frame(numeric_df, row.names = NULL, optional = TRUE, stringsAsFactors = FALSE))
+  
+  # Print outputs as.data.frame(factor_df)
+  #print("Symbolic Attributes")
+  #print(as.data.frame(factor_df, row.names = NULL, optional = TRUE, stringsAsFactors = FALSE))
+  
+  # Return value: List of two data.frames: (for downstream use)
+  #              [[1]]: Numeric attribute table
+  #              [[2]]: Factor (Symbolic) attribute table
+  list(as.data.frame(numeric_df), as.data.frame(factor_df))
+  
+} # end of "brief" function 
+
+
+## END Code Chunk 1: Load necessary packages, dataset, global functions and variables
+```
+
