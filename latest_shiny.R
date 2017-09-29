@@ -16,9 +16,8 @@ container <- list()
 
 myTable <- dbReadTable(con, "Movie_Data")
 myTable <- na.omit(myTable) #Removing the NAs for simplicity
-View(myTable)
+
 ## Only run examples in interactive R sessions
-if (interactive()) {
   
   # demoing optgroup support in the `choices` arg
   shinyApp(
@@ -42,12 +41,13 @@ if (interactive()) {
       df_subset <- reactive({
         a<-subset(data, data$genres == input$gen & data$content_rating == input$content,
                   select=(movie_title))
+       a<- a[-1,]
         return(a)
       })
       print(df_subset)
-      output$table1 <- renderPrint(df_subset())
+      output$table1 <- renderText(df_subset())
       
       }) 
-    }
+
 
 
